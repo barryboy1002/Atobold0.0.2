@@ -15,7 +15,7 @@ build: $(BOOT_FILE) $(KERNEL_FILE)
 		objcopy -O binary $(BUILD_DIR)/kernel.elf $(BUILD_DIR)/kernel.bin 
 		dd if=$(BUILD_DIR)/bootstrap.o of=$(BUILD_DIR)/kernel.img
 		dd seek=1 conv=sync if=$(BUILD_DIR)/kernel.o of=$(BUILD_DIR)/kernel.img bs=512
-		qemu-system-i386 -drive format=raw,file=$(BUILD_DIR)/kernel.img -s -S
+		qemu-system-i386 -drive format=raw,file=$(BUILD_DIR)/kernel.img
 						
 
 always:
