@@ -10,7 +10,7 @@ start:
 print_string:
   mov ah , 0eh 
 
-print_char
+print_char:
   lodsb
 
   cmp al, 0
