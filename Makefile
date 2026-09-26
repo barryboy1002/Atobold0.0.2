@@ -13,6 +13,9 @@ build: $(BOOT_FILE) $(KERNEL_FILE)
 		dd seek=1 conv=sync if=$(BUILD_DIR)/kernel.o of=$(BUILD_DIR)/kernel.img bs=512
 		qemu-system-x86_64 $(BUILD_DIR)/kernel.img
 						
+
+always:
+	mkdir -p $(BUILD_DIR)
 clean:
 	rm -f *.o
 
