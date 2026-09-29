@@ -14,8 +14,8 @@ build: $(BOOT_FILE) $(KERNEL_FILE)
 		ld -m elf_i386 -T $(LINKER) 	$(BUILD_DIR)/kernel.o -o $(BUILD_DIR)/kernel.elf
 		objcopy -O binary $(BUILD_DIR)/kernel.elf $(BUILD_DIR)/kernel.bin 
 		dd if=$(BUILD_DIR)/bootstrap.o of=$(BUILD_DIR)/kernel.img
-		dd seek=1 conv=sync if=$(BUILD_DIR)/kernel.o of=$(BUILD_DIR)/kernel.img bs=512
-		qemu-system-i386 -drive format=raw,file=$(BUILD_DIR)/kernel.img
+		dd seek=1 conv=sync if=$(BUILD_DIR)/kernel.bin  of=$(BUILD_DIR)/kernel.img bs=512
+		qemu-system-i386 -drive format=raw,file=$(BUILD_DIR)/kernel.img 
 						
 
 always:

@@ -3,13 +3,13 @@ start:
   mov ax , cs
   mov ds, ax
 
-  mov si, hello_string
+  mov si, hello_string - start
   call print_string
 
   jmp enter_protected
 
 print_string:
-  mov ah , 0eh 
+  mov ah , 0Eh
 
 print_char:
   lodsb
@@ -24,7 +24,7 @@ done:
 
 enter_protected:
   cli ;disable the hardware interrupts
-  lgdt [gdtr] ;load the GDT register with start address of GDT
+  lgdt [gdtr - start] ;load the GDT register with start address of GDT
   mov eax , cr0 
   or eax ,1 ; set protection enable bit in control register 0 (cr0)
   mov cr0 , eax
