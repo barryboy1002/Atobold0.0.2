@@ -42,6 +42,10 @@ p_mode_main:
   mov ss, ax
   mov esp, 0x9000
 
+  ;go into c 
+  extern kernel_main
+  call kernel_main 
+
 hang:
   jmp hang
 
