@@ -6,7 +6,7 @@ void terminal_setup()
 {
   vga_text_init(&terminal);
   vga_text_clear(&terminal);
-  vga_text_write(&terminal, "Hello from C");
+  vga_text_putchar(&terminal, 'e');
 }
 
 void kernel_main(void)

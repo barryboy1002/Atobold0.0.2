@@ -5,10 +5,10 @@ void vga_text_init(vga_text * terminal)
   terminal->row = 0;
   terminal->column = 0;
 
-  vga_text_set_color(terminal, VGA_COLOR_WHITE, VGA_COLOR_LIGHT_GREY);
+  vga_text_set_color(terminal, VGA_COLOR_WHITE, VGA_COLOR_DARK_GREY);
   
   terminal->width = 80;
-  terminal->height = 50;
+  terminal->height = 25;
 
   terminal->buffer = (uint16_t *)0XB8000;
   vga_text_clear(terminal);
@@ -44,21 +44,22 @@ void vga_text_set_cursor(vga_text * terminal, size_t row, size_t column)
 void vga_text_putchar(vga_text * terminal, char c )
 {
   uint8_t color = terminal->color;
-  size_t index = terminal->row * terminal->height + terminal->column;
+  size_t index = terminal->row * terminal->width + terminal->column;
   uint16_t entry = ((uint16_t) color << 8) | (uint16_t) c;
   terminal->buffer[index]= entry;
 }
 
 void vga_text_write(vga_text * terminal, const char * string)
 {
-  size_t pos = terminal->row * terminal->height + terminal->column;
+  size_t pos = terminal->row * terminal->width + terminal->column;
 
   for(size_t i = 0; string[i] != '\0'; i++){
     vga_text_putchar(terminal, string[i]);
 
     pos++;
     terminal->row = pos/terminal->width;
-    terminal->column = pos % terminal->height;
+    terminal->column = pos % terminal->width;
+    terminal->row = terminal->row % terminal->height;
   }
 }
 
