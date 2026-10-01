@@ -54,13 +54,13 @@ void vga_text_set_cursor(
 /* Color ops */ 
 void vga_text_set_color(
     vga_text * terminal,
-    vga_color f;
+    vga_color f,
     vga_color b
 );
 
 /* char out */
 void vga_text_putchar(
-    vga_terminal * terminal,
+    vga_text * terminal,
     char c
 );
 
@@ -93,7 +93,7 @@ void vga_text_put_entry_at(
     uint8_t fcolor,
     uint8_t bcolor,
     size_t row,
-    size_t column,
+    size_t column
 );
 
 
