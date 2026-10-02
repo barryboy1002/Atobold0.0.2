@@ -13,11 +13,11 @@ OBJCOPY = ~/opt/cross/bin/i686-elf-objcopy
 
 all : build 
 
-build: $(BOOT_FILE) $(KERNEL_FILE)
+build: $(BOOT_FILE) $(KERNEL_FILE) $(KERNEL_FILE_C) $(VGA_FILE) $(LINKER)
 		nasm -f bin $(BOOT_FILE) -o $(BUILD_DIR)/bootstrap.o
 		nasm -f elf32 -g -F dwarf $(KERNEL_FILE)  -o $(BUILD_DIR)/kernel.o
-		$(CC)  -m32  -ffreestanding -c $(KERNEL_FILE_C)  -o $(BUILD_DIR)/kernel_main.o
-		$(CC) -m32 -ffreestanding -c $(VGA_FILE) -o $(BUILD_DIR)/vga_text.o
+		$(CC)  -m32  -ffreestanding -nostdlib -c $(KERNEL_FILE_C)  -o $(BUILD_DIR)/kernel_main.o
+		$(CC) -m32 -ffreestanding -nostdlib -c $(VGA_FILE) -o $(BUILD_DIR)/vga_text.o
 
 		$(LD) -m elf_i386 -T $(LINKER) \
 			$(BUILD_DIR)/kernel.o\
@@ -29,11 +29,15 @@ build: $(BOOT_FILE) $(KERNEL_FILE)
 			$(BUILD_DIR)/kernel.elf \
 			$(BUILD_DIR)/kernel.bin 
 		
+		dd if=/dev/zero of=$(BUILD_DIR)/kernel.img \
+			bs=512 \
+			count=2880
+		
 		dd if=$(BUILD_DIR)/bootstrap.o \
 			of=$(BUILD_DIR)/kernel.img \
 			bs=512 \
 			conv=notrunc
-		dd seek=1 conv=sync if=$(BUILD_DIR)/kernel.bin\
+		dd seek=1 if=$(BUILD_DIR)/kernel.bin \
 			of=$(BUILD_DIR)/kernel.img \
 			bs=512 \
 			conv=notrunc 

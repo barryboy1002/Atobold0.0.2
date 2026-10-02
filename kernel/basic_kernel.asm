@@ -1,4 +1,7 @@
 [bits 16]
+
+extern kernel_main
+global start
 start:
   mov ax , cs
   mov ds, ax
@@ -30,20 +33,20 @@ enter_protected:
   mov cr0 , eax
 
   CODE_SEG equ gdt_code - gdt_start
-  jmp  CODE_SEG:p_mode_main
+  DATA_SEG equ gdt_data - gdt_start
+  jmp  dword CODE_SEG:p_mode_main
 
 [bits 32]
 p_mode_main:
-  mov ax, 10h
+  mov ax, DATA_SEG
   mov ds, ax
   mov es, ax
   mov fs, ax
   mov gs, ax
   mov ss, ax
-  mov esp, 0x9000
+  mov esp, 0x90000
 
   ;go into c 
-  extern kernel_main
   call kernel_main 
 
 hang:

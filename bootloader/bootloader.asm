@@ -1,6 +1,10 @@
 start:
+  xor ax, ax
+  mov ss, ax
+  mov sp, 0x7C00
   mov ax, 07C0h
   mov ds, ax
+  mov [boot_drive], dl
 
   mov si, title_string
   call print_string
@@ -16,15 +20,12 @@ load_kernel_from_disk:
   mov es, ax
 
   mov ah, 02h ; service number , BIOS read sector function
-  mov al, 01h ; number of sectors we want to read from (only simple kernel so less than 512 bytes)
-
-  mov ch , 0h; track number we would like to read from for now just 0
-  mov cl , 02h; sector number  that we would like to read its contents(2nd sector)
-
-  mov dh, 0h; head number 0
-  mov dl, 80h; BIOS drive number 80h is the first hard disk
-
-  mov bx, 0h; memory address that content will be loaded into
+  mov al, 16  ; number of sectors to read from disk
+  mov ch, 0h  ; track number (cylinder 0)
+  mov cl, 02h ; sector number (2nd sector, 1-indexed)
+  mov dh, 0h  ; head number 0
+  mov dl, [boot_drive] ; drive number passed by BIOS
+  mov bx, 0h  ; memory offset (es:bx = 0900h:0000h = 0x9000)
   int 13h
 
   ;INT 13h clears the carry flag on success  and  sets its  on error.
@@ -70,6 +71,7 @@ printing_finished:
 title_string db "Welcome to the Atobold0.0.0.1 Bootloader.....", 0
 message_string db "Loading up the kernel for you......", 0
 load_error_string db "Oh , oh there was a problem loading  the kernel", 0 
+boot_drive db 0
 
 times 510-($-$$) db 0 ; pads the rest of the bootloader with 510 bytes , aiming  for a 512-byte bootloader
 dw 0xAA55 ; specifies the end of a bootloader, recognised by the bootloader

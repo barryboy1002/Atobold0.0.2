@@ -34,7 +34,7 @@ typedef struct
   
   uint8_t color;
 
-  uint16_t * buffer;
+  volatile uint16_t * buffer;
 
 } vga_text;
 
@@ -83,7 +83,7 @@ void vga_text_writedec(
 
 void vga_text_writehex(
     vga_text * terminal,
-    uint32_t value; 
+    uint32_t value 
 );
 
 /* low level writing*/
