@@ -1,6 +1,8 @@
 [bits 16]
 
 extern kernel_main
+extern __bss_start
+extern __bss_end
 global start
 start:
   mov ax , cs
@@ -45,6 +47,18 @@ p_mode_main:
   mov gs, ax
   mov ss, ax
   mov esp, 0x90000
+
+  ;zero .bss — the linker leaves it out of kernel.bin, so it must be
+  ;cleared here; until now it only *happened* to be zero because the
+  ;disk image is zero-padded
+  mov edi, __bss_start
+  mov ecx, __bss_end
+  sub ecx, edi
+  add ecx, 3
+  shr ecx, 2
+  xor eax, eax
+  cld ;string ops and the C ABI both require the direction flag clear
+  rep stosd
 
   ;go into c 
   call kernel_main 

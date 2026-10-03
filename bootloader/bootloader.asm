@@ -5,6 +5,7 @@ start:
   mov ax, 07C0h
   mov ds, ax
   mov [boot_drive], dl ;hand over the boot drive identifier incase of dl is overridden
+  cld ;lodsb in print_string must scan forward; some BIOSes leave the direction flag set
 
   mov si, title_string
   call print_string
@@ -18,19 +19,31 @@ start:
 load_kernel_from_disk:
   mov ax, 0900h
   mov es, ax
+  mov bx, 0h  ; memory offset (es:bx = 0900h:0000h = 0x9000)
+  mov si, 3   ; read attempts remaining — transient read failures are normal
 
+.read:
   mov ah, 02h ; service number , BIOS read sector function
-  mov al, 60  ; number of sectors to read from disk
+  mov al, 60  ; number of sectors to read from disk — keep in sync with KERNEL_SECTORS in the Makefile
+              ; (on a 1.44M floppy geometry this crosses track boundaries —
+              ; SeaBIOS/QEMU handle multi-track CHS reads, very old BIOSes may not)
   mov ch, 0h  ; track number (cylinder 0)
   mov cl, 02h ; sector number (2nd sector, 1-indexed)
   mov dh, 0h  ; head number 0
   mov dl, [boot_drive] ; drive number passed by BIOS
-  mov bx, 0h  ; memory offset (es:bx = 0900h:0000h = 0x9000)
   int 13h
 
   ;INT 13h clears the carry flag on success  and  sets its  on error.
-  jc kernel_load_error
+  jnc .done
 
+  dec si
+  jz kernel_load_error
+  xor ah, ah  ; BIOS: reset the disk system, then try the read again
+  mov dl, [boot_drive]
+  int 13h
+  jmp .read
+
+.done:
   ret
 
 kernel_load_error:
@@ -68,7 +81,7 @@ printing_finished:
 
   ret 
 
-title_string db "Welcome to the Atobold0.0.0.1 Bootloader.....", 0
+title_string db "Welcome to the Atobold 0.0.2 Bootloader.....", 0
 message_string db "Loading up the kernel for you......", 0
 load_error_string db "Oh , oh there was a problem loading  the kernel", 0 
 boot_drive db 0

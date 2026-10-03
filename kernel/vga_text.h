@@ -44,6 +44,10 @@ void vga_text_init (vga_text * terminal);
 /* clear the screen*/
 void vga_text_clear(vga_text * terminal);
 
+/* scroll the screen up by one line (called when the cursor moves past
+   the last row) */
+void vga_text_scroll(vga_text * terminal);
+
 /* cursor ops */
 void vga_text_set_cursor(
     vga_text * terminal,
