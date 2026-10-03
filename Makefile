@@ -18,7 +18,8 @@ BOOT_SRC   := bootloader/bootloader.asm
 ENTRY_SRC  := $(KERNEL_DIR)/basic_kernel.asm
 LDSCRIPT   := $(KERNEL_DIR)/linker.ld
 
-C_SRCS := $(KERNEL_DIR)/kernel_main.c $(KERNEL_DIR)/vga_text.c $(KERNEL_DIR)/serial.c
+C_SRCS := $(KERNEL_DIR)/kernel_main.c $(KERNEL_DIR)/vga_text.c \
+          $(KERNEL_DIR)/serial.c $(KERNEL_DIR)/interrupts.c
 C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 # The bootloader reads this many 512-byte sectors of kernel at 0x9000.
@@ -28,7 +29,13 @@ KERNEL_SECTORS ?= 60
 CFLAGS := -m32 -ffreestanding -nostdlib -fno-pie -fno-stack-protector \
           -fno-asynchronous-unwind-tables -Wall -Wextra -g
 
-.PHONY: all run test clean
+ifdef CRASH_DEMO
+# 'make test-panic' builds a kernel that faults on purpose after boot,
+# to demonstrate and verify the exception reporter.
+CFLAGS += -DCRASH_DEMO
+endif
+
+.PHONY: all run test test-panic clean
 
 all: $(BUILD_DIR)/kernel.img
 
@@ -42,13 +49,16 @@ $(BUILD_DIR)/boot.bin: $(BOOT_SRC) | $(BUILD_DIR)
 $(BUILD_DIR)/basic_kernel.o: $(ENTRY_SRC) | $(BUILD_DIR)
 	$(NASM) -f elf32 -g -F dwarf $< -o $@
 
+$(BUILD_DIR)/isr.o: $(KERNEL_DIR)/isr.asm | $(BUILD_DIR)
+	$(NASM) -f elf32 -g -F dwarf $< -o $@
+
 $(BUILD_DIR)/%.o: $(KERNEL_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # basic_kernel.o must come first: its `start` label has to land on the
 # 0x9000 entry address the bootloader jumps to.
-$(BUILD_DIR)/kernel.elf: $(LDSCRIPT) $(BUILD_DIR)/basic_kernel.o $(C_OBJS) | $(BUILD_DIR)
-	$(LD) -m elf_i386 -T $(LDSCRIPT) $(BUILD_DIR)/basic_kernel.o $(C_OBJS) -o $@
+$(BUILD_DIR)/kernel.elf: $(LDSCRIPT) $(BUILD_DIR)/basic_kernel.o $(BUILD_DIR)/isr.o $(C_OBJS) | $(BUILD_DIR)
+	$(LD) -m elf_i386 -T $(LDSCRIPT) $(BUILD_DIR)/basic_kernel.o $(BUILD_DIR)/isr.o $(C_OBJS) -o $@
 
 $(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/kernel.elf
 	$(OBJCOPY) -O binary $< $@
@@ -71,6 +81,16 @@ run: all
 
 test: all
 	tools/boot_test.sh $(BUILD_DIR)/kernel.img
+
+# boot a kernel that faults on purpose and verify the report, then
+# restore the normal image. Command-line variables like CROSS= are
+# passed through to the sub-makes automatically.
+test-panic:
+	$(MAKE) --no-print-directory clean
+	$(MAKE) --no-print-directory CRASH_DEMO=1 all
+	tools/boot_test.sh --panic $(BUILD_DIR)/kernel.img
+	$(MAKE) --no-print-directory clean
+	$(MAKE) --no-print-directory all
 
 clean:
 	rm -rf $(BUILD_DIR)

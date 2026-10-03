@@ -90,6 +90,12 @@ void vga_text_writehex(
     uint32_t value 
 );
 
+/* write value as fixed-width, zero-padded 8-digit hex (0000ABCD) */
+void vga_text_writehex32(
+    vga_text * terminal,
+    uint32_t value
+);
+
 /* low level writing*/
 void vga_text_put_entry_at(
     vga_text * terminal,

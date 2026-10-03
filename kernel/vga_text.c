@@ -139,6 +139,15 @@ void vga_text_writehex(vga_text * terminal, uint32_t value)
   }
 }
 
+void vga_text_writehex32(vga_text * terminal, uint32_t value)
+{
+  /* fixed-width, zero-padded: 0000ABCD */
+  static const char digits[] = "0123456789ABCDEF";
+  for (int shift = 28; shift >= 0; shift -= 4) {
+    vga_text_putchar(terminal, digits[(value >> shift) & 0xF]);
+  }
+}
+
 void vga_text_put_entry_at(
   vga_text * terminal,
   char character,
