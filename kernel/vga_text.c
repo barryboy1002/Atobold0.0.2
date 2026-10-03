@@ -8,7 +8,7 @@ void vga_text_init(vga_text * terminal)
   terminal->height = 25;
   terminal->buffer = (volatile uint16_t *)0xB8000;
   
-  vga_text_set_color(terminal, VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+  vga_text_set_color(terminal, VGA_COLOR_WHITE, VGA_COLOR_DARK_GREY);
   vga_text_clear(terminal);
 }
 
@@ -17,15 +17,15 @@ void vga_text_clear(vga_text * terminal)
   uint8_t color = terminal->color;
   uint16_t blank = ((uint16_t)color << 8) | ' ';
 
-  for (; terminal->row >= 0; terminal->row--) {
-    for (; terminal->column >= 0 ; terminal->column--) {
-      size_t index = terminal->row * terminal->width + terminal->column;
+  for (size_t row = 0; row < terminal->height; row++) {
+    for (size_t col = 0; col < terminal->width; col++) {
+      size_t index = row * terminal->width + col;
       terminal->buffer[index] = blank;
     }
   }
 
-  /*terminal->row = 0;
-  terminal->column = 0;*/
+  terminal->row = 0;
+  terminal->column = 0;
 }
 
 void vga_text_set_color(vga_text * terminal, vga_color f, vga_color b)
