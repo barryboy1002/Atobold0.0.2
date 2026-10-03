@@ -62,11 +62,12 @@ $(BUILD_DIR)/kernel.elf: $(LDSCRIPT) $(BUILD_DIR)/basic_kernel.o $(BUILD_DIR)/is
 
 $(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/kernel.elf
 	$(OBJCOPY) -O binary $< $@
-	@size=$$(stat -c %s $@); \
+	@size=$$(wc -c < $@); \
 	max=$$(( $(KERNEL_SECTORS) * 512 )); \
 	if [ $$size -gt $$max ]; then \
           echo "kernel.bin is $$size bytes but the bootloader only loads $$max"; \
           echo "(KERNEL_SECTORS=$(KERNEL_SECTORS); keep in sync with bootloader/bootloader.asm)"; \
+          rm -f $@; \
           exit 1; \
 	fi; \
 	echo "kernel.bin: $$size / $$max bytes"
@@ -80,17 +81,19 @@ run: all
 	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/kernel.img -serial stdio
 
 test: all
-	tools/boot_test.sh $(BUILD_DIR)/kernel.img
+	QEMU="$(QEMU)" tools/boot_test.sh $(BUILD_DIR)/kernel.img
 
 # boot a kernel that faults on purpose and verify the report, then
 # restore the normal image. Command-line variables like CROSS= are
 # passed through to the sub-makes automatically.
 test-panic:
 	$(MAKE) --no-print-directory clean
-	$(MAKE) --no-print-directory CRASH_DEMO=1 all
-	tools/boot_test.sh --panic $(BUILD_DIR)/kernel.img
-	$(MAKE) --no-print-directory clean
-	$(MAKE) --no-print-directory all
+	$(MAKE) --no-print-directory CRASH_DEMO=1 all && \
+          tools/boot_test.sh --panic $(BUILD_DIR)/kernel.img; \
+	status=$$?; \
+	$(MAKE) --no-print-directory clean; \
+	$(MAKE) --no-print-directory all; \
+	exit $$status
 
 # boot QEMU paused with a gdb stub attached, then run gdb with kernel
 # symbols (see .gdbinit for the helper macros)

@@ -4,8 +4,10 @@
 ;     [vector][error code][EIP][CS][EFLAGS]
 ; Exceptions 8, 10-14 and 17 push their own error code; every other
 ; exception pushes a dummy 0, so the C handler always sees one uniform
-; frame. isr_common then saves all registers and calls fault_handler,
-; which prints the report and never returns.
+; frame. (On CPUs with CET/SEV features, vectors 21/29/30 would also
+; push an error code, but this kernel enables none of those features.)
+; isr_common then saves all registers and calls fault_handler, which
+; prints the report and never returns.
 
 [bits 32]
 
@@ -72,7 +74,9 @@ isr_common:
     mov fs, ax
     mov gs, ax
     push esp                ; argument: pointer to the interrupt frame
-    call fault_handler
+    call fault_handler      ; NOTE: relies on the -O0 build (no SSE/
+                            ; aligned-move codegen), so the frame does
+                            ; not need forced 16-byte stack alignment
 .hang:                      ; fault_handler never returns; safety net
     cli
     hlt

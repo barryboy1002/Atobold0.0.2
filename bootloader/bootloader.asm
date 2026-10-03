@@ -25,6 +25,8 @@ load_kernel_from_disk:
 .read:
   mov ah, 02h ; service number , BIOS read sector function
   mov al, 60  ; number of sectors to read from disk — keep in sync with KERNEL_SECTORS in the Makefile
+              ; (on a 1.44M floppy geometry this crosses track boundaries —
+              ; SeaBIOS/QEMU handle multi-track CHS reads, very old BIOSes may not)
   mov ch, 0h  ; track number (cylinder 0)
   mov cl, 02h ; sector number (2nd sector, 1-indexed)
   mov dh, 0h  ; head number 0
