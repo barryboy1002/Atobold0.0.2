@@ -18,7 +18,7 @@ BOOT_SRC   := bootloader/bootloader.asm
 ENTRY_SRC  := $(KERNEL_DIR)/basic_kernel.asm
 LDSCRIPT   := $(KERNEL_DIR)/linker.ld
 
-C_SRCS := $(KERNEL_DIR)/kernel_main.c $(KERNEL_DIR)/vga_text.c
+C_SRCS := $(KERNEL_DIR)/kernel_main.c $(KERNEL_DIR)/vga_text.c $(KERNEL_DIR)/serial.c
 C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 # The bootloader reads this many 512-byte sectors of kernel at 0x9000.
@@ -28,7 +28,7 @@ KERNEL_SECTORS ?= 60
 CFLAGS := -m32 -ffreestanding -nostdlib -fno-pie -fno-stack-protector \
           -fno-asynchronous-unwind-tables -Wall -Wextra -g
 
-.PHONY: all run clean
+.PHONY: all run test clean
 
 all: $(BUILD_DIR)/kernel.img
 
@@ -68,6 +68,9 @@ $(BUILD_DIR)/kernel.img: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin | $(BUILD
 
 run: all
 	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/kernel.img -serial stdio
+
+test: all
+	tools/boot_test.sh $(BUILD_DIR)/kernel.img
 
 clean:
 	rm -rf $(BUILD_DIR)
