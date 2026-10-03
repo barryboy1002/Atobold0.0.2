@@ -35,7 +35,7 @@ ifdef CRASH_DEMO
 CFLAGS += -DCRASH_DEMO
 endif
 
-.PHONY: all run test test-panic clean
+.PHONY: all run test test-panic gdb clean
 
 all: $(BUILD_DIR)/kernel.img
 
@@ -65,9 +65,9 @@ $(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/kernel.elf
 	@size=$$(stat -c %s $@); \
 	max=$$(( $(KERNEL_SECTORS) * 512 )); \
 	if [ $$size -gt $$max ]; then \
-	  echo "kernel.bin is $$size bytes but the bootloader only loads $$max"; \
-	  echo "(KERNEL_SECTORS=$(KERNEL_SECTORS); keep in sync with bootloader/bootloader.asm)"; \
-	  exit 1; \
+          echo "kernel.bin is $$size bytes but the bootloader only loads $$max"; \
+          echo "(KERNEL_SECTORS=$(KERNEL_SECTORS); keep in sync with bootloader/bootloader.asm)"; \
+          exit 1; \
 	fi; \
 	echo "kernel.bin: $$size / $$max bytes"
 
@@ -91,6 +91,16 @@ test-panic:
 	tools/boot_test.sh --panic $(BUILD_DIR)/kernel.img
 	$(MAKE) --no-print-directory clean
 	$(MAKE) --no-print-directory all
+
+# boot QEMU paused with a gdb stub attached, then run gdb with kernel
+# symbols (see .gdbinit for the helper macros)
+gdb: all
+	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/kernel.img -S -s -display none & \
+	QPID=$$!; \
+	sleep 1; \
+	gdb -q -iex 'set auto-load safe-path $(CURDIR)' \
+          -ex 'target remote :1234' $(BUILD_DIR)/kernel.elf; \
+	kill $$QPID 2>/dev/null
 
 clean:
 	rm -rf $(BUILD_DIR)
