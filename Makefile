@@ -11,9 +11,9 @@ LD = ~/opt/cross/bin/i686-elf-ld
 OBJCOPY = ~/opt/cross/bin/i686-elf-objcopy
 .PHONY: all build clean always
 
-all : build 
+all : build always 
 
-build: $(BOOT_FILE) $(KERNEL_FILE) $(KERNEL_FILE_C) $(VGA_FILE) $(LINKER)
+build: always $(BOOT_FILE) $(KERNEL_FILE) $(KERNEL_FILE_C) $(VGA_FILE) $(LINKER)
 		nasm -f bin $(BOOT_FILE) -o $(BUILD_DIR)/bootstrap.o
 		nasm -f elf32 -g -F dwarf $(KERNEL_FILE)  -o $(BUILD_DIR)/kernel.o
 		$(CC)  -m32  -ffreestanding -nostdlib -c $(KERNEL_FILE_C)  -o $(BUILD_DIR)/kernel_main.o
@@ -43,8 +43,8 @@ build: $(BOOT_FILE) $(KERNEL_FILE) $(KERNEL_FILE_C) $(VGA_FILE) $(LINKER)
 			conv=notrunc 
 		
 		qemu-system-i386 \
-			-drive format=raw,file=$(BUILD_DIR)/kernel.img 
-						
+			-drive format=raw,file=$(BUILD_DIR)/kernel.img
+
 
 always:
 	mkdir -p $(BUILD_DIR)

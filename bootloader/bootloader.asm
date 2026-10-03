@@ -4,7 +4,7 @@ start:
   mov sp, 0x7C00
   mov ax, 07C0h
   mov ds, ax
-  mov [boot_drive], dl
+  mov [boot_drive], dl ;hand over the boot drive identifier incase of dl is overridden
 
   mov si, title_string
   call print_string
@@ -20,7 +20,7 @@ load_kernel_from_disk:
   mov es, ax
 
   mov ah, 02h ; service number , BIOS read sector function
-  mov al, 16  ; number of sectors to read from disk
+  mov al, 60  ; number of sectors to read from disk
   mov ch, 0h  ; track number (cylinder 0)
   mov cl, 02h ; sector number (2nd sector, 1-indexed)
   mov dh, 0h  ; head number 0

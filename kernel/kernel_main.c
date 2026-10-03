@@ -11,7 +11,8 @@ void terminal_setup()
 
 void kernel_main(void)
 {
-  terminal_setup();  
+  terminal_setup(); 
+  vga_text_clear(&terminal);
 
 
   for (;;); 
