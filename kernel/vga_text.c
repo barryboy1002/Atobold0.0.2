@@ -39,6 +39,23 @@ void vga_text_set_cursor(vga_text * terminal, size_t row, size_t column)
   terminal->column = column;
 }
 
+void vga_text_scroll(vga_text * terminal)
+{
+  /* move rows 1..height-1 up by one row */
+  for (size_t i = 0; i < (terminal->height - 1) * terminal->width; i++) {
+    terminal->buffer[i] = terminal->buffer[i + terminal->width];
+  }
+
+  /* blank the row that just scrolled in at the bottom */
+  uint16_t blank = ((uint16_t)terminal->color << 8) | ' ';
+  for (size_t i = (terminal->height - 1) * terminal->width;
+       i < terminal->height * terminal->width; i++) {
+    terminal->buffer[i] = blank;
+  }
+
+  terminal->row = terminal->height - 1;
+}
+
 void vga_text_putchar(vga_text * terminal, char c)
 {
   if (c == '\n') {
@@ -49,7 +66,7 @@ void vga_text_putchar(vga_text * terminal, char c)
   } else {
     uint8_t color = terminal->color;
     const size_t index = terminal->row * terminal->width + terminal->column;
-    uint16_t entry = ((uint16_t)color << 8) | (uint16_t)c;
+    uint16_t entry = ((uint16_t)color << 8) | (uint8_t)c;
     terminal->buffer[index] = entry;
     terminal->column++;
   }
@@ -60,7 +77,7 @@ void vga_text_putchar(vga_text * terminal, char c)
   }
 
   if (terminal->row >= terminal->height) {
-    terminal->row = 0;
+    vga_text_scroll(terminal);
   }
 }
 
@@ -132,6 +149,6 @@ void vga_text_put_entry_at(
 ) {
   uint8_t color = ((uint8_t)bcolor << 4) | (uint8_t)fcolor;
   size_t index = row * terminal->width + column;
-  uint16_t entry = ((uint16_t)color << 8) | (uint16_t)character;
+  uint16_t entry = ((uint16_t)color << 8) | (uint8_t)character;
   terminal->buffer[index] = entry;
 }

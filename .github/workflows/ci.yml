@@ -1,0 +1,21 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-boot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nasm qemu-system-x86 gcc-multilib
+      - name: build
+        run: make CROSS=
+      - name: boot test
+        run: make CROSS= test
+      - name: exception report test
+        run: make CROSS= test-panic
