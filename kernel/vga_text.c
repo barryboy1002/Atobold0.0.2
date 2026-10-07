@@ -66,7 +66,7 @@ void vga_text_putchar(vga_text * terminal, char c)
   } else {
     uint8_t color = terminal->color;
     const size_t index = terminal->row * terminal->width + terminal->column;
-    uint16_t entry = ((uint16_t)color << 8) | (uint8_t)c;
+    uint16_t entry = ((uint16_t)color << 8) | (uint8_t) c;
     terminal->buffer[index] = entry;
     terminal->column++;
   }
@@ -147,8 +147,21 @@ void vga_text_put_entry_at(
   size_t row,
   size_t column
 ) {
+  //scroll if position is beyond screen
   uint8_t color = ((uint8_t)bcolor << 4) | (uint8_t)fcolor;
+
+  if(row >= terminal->height){
+    size_t scroll_length = row - (terminal->height - 1);
+    for(size_t i = 0; i < scroll_length; i++){
+      vga_text_scroll(terminal);
+    }
+    row = (terminal->height -1);
+  }
+  /*Calculate the position after ensuring the row is valid. */
   size_t index = row * terminal->width + column;
+
   uint16_t entry = ((uint16_t)color << 8) | (uint8_t)character;
-  terminal->buffer[index] = entry;
+  
+  terminal->buffer[index] = entry; 
+
 }
