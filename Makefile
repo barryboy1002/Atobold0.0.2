@@ -20,7 +20,7 @@ ENTRY_SRC  := $(KERNEL_DIR)/basic_kernel.asm
 LDSCRIPT   := $(KERNEL_DIR)/linker.ld
 
 C_SRCS := $(KERNEL_DIR)/kernel_main.c $(DRIVERS)/vga_text.c \
-          $(KERNEL_DIR)/serial.c $(KERNEL_DIR)/interrupts.c
+          $(DRIVERS)/serial.c $(KERNEL_DIR)/interrupts.c
 C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 # The bootloader reads this many 512-byte sectors of kernel at 0x9000.
