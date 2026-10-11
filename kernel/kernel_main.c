@@ -12,7 +12,7 @@ void terminal_setup()
 
   /* one boot banner on both outputs: the screen and COM1 */
   vga_text_writeline(&terminal, "Atobold 0.0.2");
-  vga_text_put_entry_at(&terminal, 'F',12,14, 25,04);
+  //vga_text_put_entry_at(&terminal, 'F',12,14, 25,04);
   serial_write("Atobold 0.0.2\n");
 
 #ifdef CRASH_DEMO
