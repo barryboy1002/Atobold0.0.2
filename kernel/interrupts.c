@@ -1,7 +1,7 @@
 #include "interrupts.h"
 
 #include "serial.h"
-#include "vga_text.h"
+#include "drivers/vga_text.h"
 
 #include <stdint.h>
 

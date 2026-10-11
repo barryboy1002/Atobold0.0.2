@@ -14,11 +14,12 @@ QEMU     ?= qemu-system-i386
 
 BUILD_DIR  := build
 KERNEL_DIR := kernel
+DRIVERS := $(KERNEL_DIR)/drivers
 BOOT_SRC   := bootloader/bootloader.asm
 ENTRY_SRC  := $(KERNEL_DIR)/basic_kernel.asm
 LDSCRIPT   := $(KERNEL_DIR)/linker.ld
 
-C_SRCS := $(KERNEL_DIR)/kernel_main.c $(KERNEL_DIR)/vga_text.c \
+C_SRCS := $(KERNEL_DIR)/kernel_main.c $(DRIVERS)/vga_text.c \
           $(KERNEL_DIR)/serial.c $(KERNEL_DIR)/interrupts.c
 C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
@@ -27,7 +28,7 @@ C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 KERNEL_SECTORS ?= 60
 
 CFLAGS := -m32 -ffreestanding -nostdlib -fno-pie -fno-stack-protector \
-          -fno-asynchronous-unwind-tables -Wall -Wextra -g
+          -fno-asynchronous-unwind-tables -Wall -Wextra -g -I$(KERNEL_DIR)
 
 ifdef CRASH_DEMO
 # 'make test-panic' builds a kernel that faults on purpose after boot,
@@ -53,6 +54,7 @@ $(BUILD_DIR)/isr.o: $(KERNEL_DIR)/isr.asm | $(BUILD_DIR)
 	$(NASM) -f elf32 -g -F dwarf $< -o $@
 
 $(BUILD_DIR)/%.o: $(KERNEL_DIR)/%.c | $(BUILD_DIR)
+	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # basic_kernel.o must come first: its `start` label has to land on the

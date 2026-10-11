@@ -1,4 +1,4 @@
-#include "vga_text.h"
+#include "drivers/vga_text.h"
 #include "serial.h"
 #include "interrupts.h"
 

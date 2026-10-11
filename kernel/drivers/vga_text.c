@@ -1,4 +1,4 @@
-#include "vga_text.h"
+#include "drivers/vga_text.h"
 
 void vga_text_init(vga_text * terminal)
 {
