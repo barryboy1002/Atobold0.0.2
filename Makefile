@@ -25,7 +25,7 @@ C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 # The bootloader reads this many 512-byte sectors of kernel at 0x9000.
 # Keep in sync with `mov al, 60` in bootloader/bootloader.asm.
-KERNEL_SECTORS ?= 60
+KERNEL_SECTORS ?= 100 
 
 CFLAGS := -m32 -ffreestanding -nostdlib -fno-pie -fno-stack-protector \
           -fno-asynchronous-unwind-tables -Wall -Wextra -g -I$(KERNEL_DIR)
@@ -80,7 +80,7 @@ $(BUILD_DIR)/kernel.img: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin | $(BUILD
 	dd if=$(BUILD_DIR)/kernel.bin of=$@ bs=512 seek=1 conv=notrunc status=none
 
 run: all
-	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/kernel.img -serial stdio
+	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/kernel.img,media=disk -serial stdio
 
 test: all
 	QEMU="$(QEMU)" tools/boot_test.sh $(BUILD_DIR)/kernel.img

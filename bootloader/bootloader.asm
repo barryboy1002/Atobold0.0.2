@@ -13,6 +13,18 @@ start:
   mov si, message_string
   call print_string
 
+
+
+check_hdd_support:
+  mov ah , 41h
+  mov bx, 0x55AA ;magic number handshake
+  mov dl, [boot_drive]
+  int 13h
+
+  jc kernel_load_error
+  cmp bx , 0xAA55 
+  jne kernel_load_error
+
   call load_kernel_from_disk
   jmp 0900h:0000;gives control to the kernel by jumping to its starting point.
 
@@ -20,23 +32,18 @@ load_kernel_from_disk:
   mov ax, 0900h
   mov es, ax
   mov bx, 0h  ; memory offset (es:bx = 0900h:0000h = 0x9000)
-  mov si, 3   ; read attempts remaining — transient read failures are normal
+  mov ax, 3   ; read attempts remaining — transient read failures are normal
 
 .read:
-  mov ah, 02h ; service number , BIOS read sector function
-  mov al, 60  ; number of sectors to read from disk — keep in sync with KERNEL_SECTORS in the Makefile
-              ; (on a 1.44M floppy geometry this crosses track boundaries —
-              ; SeaBIOS/QEMU handle multi-track CHS reads, very old BIOSes may not)
-  mov ch, 0h  ; track number (cylinder 0)
-  mov cl, 02h ; sector number (2nd sector, 1-indexed)
-  mov dh, 0h  ; head number 0
-  mov dl, [boot_drive] ; drive number passed by BIOS
+  mov ah, 42h ; service number , BIOS read sector function
+  mov dl , [boot_drive] 
+  mov si , dap ; point to the disk Access packet
   int 13h
 
   ;INT 13h clears the carry flag on success  and  sets its  on error.
   jnc .done
 
-  dec si
+  dec ax
   jz kernel_load_error
   xor ah, ah  ; BIOS: reset the disk system, then try the read again
   mov dl, [boot_drive]
@@ -83,7 +90,14 @@ printing_finished:
 
 title_string db "Welcome to the Atobold 0.0.2 Bootloader.....", 0
 message_string db "Loading up the kernel for you......", 0
-load_error_string db "Oh , oh there was a problem loading  the kernel", 0 
+load_error_string db "Oh , oh there was a problem loading  the kernel", 0
+dap:
+  db 0x10  ;size of the byte
+  db 0  ;always reserved
+  dw 100 ;number of sectors to read
+  dw 0x0000 ; target memory offset
+  dw 0x0900 ; target memory segment 
+  dq 1  ;starting LBA
 boot_drive db 0
 
 times 510-($-$$) db 0 ; pads the rest of the bootloader with 510 bytes , aiming  for a 512-byte bootloader

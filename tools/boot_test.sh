@@ -24,10 +24,15 @@ MONITOR_LOG="$(dirname "$IMAGE")/monitor.log"
 rm -f "$SERIAL_LOG" "$MONITOR_LOG"
 
 # boot headless; after a few seconds dump the first VGA text cells and quit
-( sleep 4; echo "xp /2hx 0xb8000"; sleep 1; echo quit ) | \
-  timeout 30 $QEMU -drive format=raw,file="$IMAGE" -display none \
+(
+  sleep 4
+  echo "xp /2hx 0xb8000"
+  sleep 1
+  echo quit
+) |
+  timeout 30 $QEMU -drive format=raw,file="$IMAGE",media=disk -display none \
     -no-reboot -serial file:"$SERIAL_LOG" -monitor stdio \
-    > "$MONITOR_LOG" 2>&1
+    >"$MONITOR_LOG" 2>&1
 
 if [ ! -s "$SERIAL_LOG" ]; then
   echo "FAIL: no serial output at all (is the serial driver initialized?)"
@@ -35,8 +40,8 @@ if [ ! -s "$SERIAL_LOG" ]; then
 fi
 
 if [ "$PANIC" = 1 ]; then
-  if command grep -q "KERNEL PANIC" "$SERIAL_LOG" && \
-     command grep -q "EXCEPTION" "$SERIAL_LOG"; then
+  if command grep -q "KERNEL PANIC" "$SERIAL_LOG" &&
+    command grep -q "EXCEPTION" "$SERIAL_LOG"; then
     echo "PASS: kernel panicked as expected and reported the exception"
     exit 0
   fi
