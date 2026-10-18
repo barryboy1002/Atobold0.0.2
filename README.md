@@ -76,8 +76,8 @@
   ## AI & Tooling Disclaimer
 
   Large Language Models (LLMs) and AI tools are utilized solely as interactive reference documentation, search engines, and analytical sounding boards (e.g.,
-  assessing architectural trade-offs, debugging compiler behaviors, and reviewing hardware specs). All kernel implementation code, build system
-  configurations, and architectural designs are authored and verified directly by the project developer.
+  assessing architectural trade-offs, debugging compiler behaviors, and reviewing hardware specs). **All kernel implementation code, build system
+  configurations, and architectural designs are authored and verified directly by the project developer**.
   ──────
   ## License
 
