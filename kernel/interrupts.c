@@ -3,12 +3,39 @@
 #include "drivers/serial.h"
 #include "drivers/vga_text.h"
 
-#include <stdint.h>
 
 /* IDT gate: present, DPL 0, 32-bit interrupt gate. Interrupt gates
    clear IF on entry, so a handler can never nest with an IRQ. */
 #define GATE_PRESENT_32_INT 0x8E
 #define KERNEL_CODE_SELECTOR 0x08
+
+
+
+#define PIC1 0x20 /* address for the master PIC */
+#define PIC2 0xA0 /* address for  the slave PIC */ 
+
+#define PIC1_COMM PIC1
+#define PIC1_DATA PIC1 + 1
+#define PIC2_COMM PIC2
+#define PIC2_DATA PIC2 + 1
+
+#define ICW1_ICW4 0x01 /* indicates that ICW4 WILL BE PRESENT */ 
+#define ICW1_SINGLE 0x02 /* Single (cascade) mode */ 
+#define ICW1_INTERVAL4 0x04 /*Call address interval 4 */ 
+#define ICW1_LEVEL 0x08 /* Level triggered edge mode */ 
+#define ICW1_INIT 0x10 /* Initialisation -required */ 
+
+#define ICW4_8086 0x01 /* 8086/88 (MCS-80/85) mode */
+#define ICW4_AUTO 0X02 /*Auto (normal) EOI */ 
+#define ICW4_BUF_SLAVE 0x08 /*Buffered model/slave*/
+#define ICW4_BUF_MASTER 0x0C /*Buffered model/master*/
+
+#define CASCADE_IRQ 2
+
+#define PIC_EOI 0x20
+
+static vga_text screen;
+
 
 typedef struct {
   uint16_t offset_lo;
@@ -28,6 +55,7 @@ static idt_register idtr;
 
 /* the 32 exception stubs from isr.asm, in vector order */
 extern uint32_t isr_stub_table[32];
+extern uint32_t irq_stub_table[16];
 
 static const char *const exception_names[32] = {
   "DIVIDE BY ZERO",         "DEBUG",                "NMI",
@@ -52,15 +80,23 @@ static void idt_set_gate(uint8_t vector, uint32_t handler)
   idt[vector].offset_hi = handler >> 16;
 }
 
+
+
 void interrupts_init(void)
 {
-  for (int i = 0; i < 32; i++) {
-    idt_set_gate((uint8_t)i, isr_stub_table[i]);
+  for (uint8_t i = 0; i < 32; i++) {
+    idt_set_gate(i, isr_stub_table[i]);
+  }
+  for (uint8_t i = 0; i < 16; i++){
+    uint8_t j = i + 32;
+    idt_set_gate(j, irq_stub_table[i]);
   }
 
   idtr.limit = sizeof(idt) - 1;
   idtr.base  = (uint32_t)idt;
   __asm__ volatile ("lidt %0" : : "m"(idtr));
+  pic_remap(0x20,0x28);
+  __asm__ volatile("sti");
 }
 
 /* ---------------- exception reporter ---------------- */
@@ -74,10 +110,17 @@ typedef struct {
   /* the esp field is the pusha snapshot: it points at `vector` */
 } interrupt_frame;
 
+void pic_send_eoi(uint8_t irq){
+  if(irq >= 8)
+    outb(PIC2_COMM, PIC_EOI);
+  outb(PIC1_COMM,PIC_EOI);
+}
+
 static char *append_str(char *p, const char *s)
 {
   while (*s != '\0') {
     *p++ = *s++;
+
   }
   return p;
 }
@@ -89,7 +132,7 @@ static char *append_hex32(char *p, uint32_t value)
     *p++ = digits[(value >> shift) & 0xF];
   }
   return p;
-}
+} 
 
 /* one line to both outputs: the screen and COM1 */
 static void report(vga_text *screen, const char *line)
@@ -103,7 +146,6 @@ void fault_handler(interrupt_frame *frame)
 {
   /* a crashing kernel cannot trust its own globals: use a local
      terminal over the VGA buffer, always from a cleared screen */
-  vga_text screen;
   vga_text_init(&screen);
 
   uint32_t cr0, cr2, cr3;
@@ -114,7 +156,7 @@ void fault_handler(interrupt_frame *frame)
   char line[96];
   char *p;
 
-  vga_text_set_color(&screen, VGA_COLOR_WHITE, VGA_COLOR_RED);
+  vga_text_set_color( &screen, VGA_COLOR_WHITE, VGA_COLOR_RED);
   report(&screen,
          "                              ATOBOLD KERNEL PANIC"
          "                              \n\n");
@@ -205,4 +247,58 @@ void fault_handler(interrupt_frame *frame)
   for (;;) {
     __asm__ volatile ("hlt");
   }
+}
+
+void irq_handler(interrupt_frame  * frame){
+  /* handle my hardware interrupts*/
+  vga_text_init(&screen);
+  switch(frame->vector-32){
+    case 0:
+      vga_text_writeline(&screen, "Timer interrupt");
+      break;
+    case 1:
+      vga_text_writeline(&screen,"Keyboard stroke");
+      break;
+    default:
+      vga_text_writeline(&screen, "I probably am not handling that yet");
+      break;
+  }
+
+  pic_send_eoi(frame->vector - 32);
+
+}
+
+
+void pic_remap(int offset1, int offset2)
+{ /*save state of enabled Irqs*/
+  uint8_t a1 = inb(PIC1_DATA);
+  uint8_t a2 = inb(PIC2_DATA);
+  
+ /* initialisation of the PIC controller giving them specific vector offsets */
+  outb(PIC1_COMM, ICW1_INIT | ICW1_ICW4);  /*starting the initialisation sequence (in cascade mode)*/
+  io_wait();
+  outb(PIC2_COMM, ICW1_INIT | ICW1_ICW4);
+  io_wait();
+
+  /* set the vector ofsets fo the PIC*/ 
+  outb(PIC1_DATA, offset1);
+  io_wait();
+  outb(PIC2_DATA, offset2); 
+  io_wait();
+
+  /*Connect master  and slave through IRQ2*/
+  outb (PIC1_DATA,  1 << CASCADE_IRQ);
+  io_wait();
+  outb (PIC2_DATA, CASCADE_IRQ);
+  io_wait();
+
+  /*select 8086 interrrupt mode*/
+  outb(PIC1_DATA, ICW4_8086);
+  io_wait();
+  outb(PIC2_DATA, ICW4_8086);
+  io_wait();
+
+  /*unmask PICS*/
+  outb(PIC1_DATA, a1);
+  outb(PIC2_DATA, a2);
 }

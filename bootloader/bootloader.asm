@@ -32,7 +32,7 @@ load_kernel_from_disk:
   mov ax, 0900h
   mov es, ax
   mov bx, 0h  ; memory offset (es:bx = 0900h:0000h = 0x9000)
-  mov ax, 3   ; read attempts remaining — transient read failures are normal
+  mov di, 3   ; read attempts remaining — transient read failures are normal
 
 .read:
   mov ah, 42h ; service number , BIOS read sector function
@@ -43,7 +43,7 @@ load_kernel_from_disk:
   ;INT 13h clears the carry flag on success  and  sets its  on error.
   jnc .done
 
-  dec ax
+  dec di
   jz kernel_load_error
   xor ah, ah  ; BIOS: reset the disk system, then try the read again
   mov dl, [boot_drive]
