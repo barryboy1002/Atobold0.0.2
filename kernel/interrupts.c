@@ -34,7 +34,6 @@
 
 #define PIC_EOI 0x20
 
-static vga_text screen;
 
 
 typedef struct {
@@ -146,6 +145,7 @@ void fault_handler(interrupt_frame *frame)
 {
   /* a crashing kernel cannot trust its own globals: use a local
      terminal over the VGA buffer, always from a cleared screen */
+  static vga_text screen;
   vga_text_init(&screen);
 
   uint32_t cr0, cr2, cr3;
@@ -251,16 +251,15 @@ void fault_handler(interrupt_frame *frame)
 
 void irq_handler(interrupt_frame  * frame){
   /* handle my hardware interrupts*/
-  vga_text_init(&screen);
   switch(frame->vector-32){
     case 0:
-      vga_text_writeline(&screen, "Timer interrupt");
+      serial_write("timer interrupt");
       break;
     case 1:
-      vga_text_writeline(&screen,"Keyboard stroke");
+      serial_write("keyboard interrupt");
       break;
     default:
-      vga_text_writeline(&screen, "I probably am not handling that yet");
+      serial_write( "I probably am not handling that yet");
       break;
   }
 
