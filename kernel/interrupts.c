@@ -1,7 +1,7 @@
-#include "interrupts.h"
+#include "kernel/interrupts.h"
 
-#include "drivers/serial.h"
-#include "drivers/vga_text.h"
+#include "kernel/drivers/serial.h"
+#include "kernel/drivers/vga_text.h"
 
 
 /* IDT gate: present, DPL 0, 32-bit interrupt gate. Interrupt gates

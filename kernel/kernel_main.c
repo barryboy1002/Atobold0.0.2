@@ -1,6 +1,6 @@
-#include "drivers/vga_text.h"
-#include "drivers/serial.h"
-#include "interrupts.h"
+#include "kernel/drivers/vga_text.h"
+#include "kernel/drivers/serial.h"
+#include "kernel/interrupts.h"
 
 
 static vga_text terminal;

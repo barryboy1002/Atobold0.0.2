@@ -13,6 +13,7 @@ NASM     ?= nasm
 QEMU     ?= qemu-system-i386
 
 BUILD_DIR  := build
+INCLUDE_DIR := include
 KERNEL_DIR := kernel
 DRIVERS := $(KERNEL_DIR)/drivers
 BOOT_SRC   := bootloader/bootloader.asm
@@ -28,7 +29,7 @@ C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 KERNEL_SECTORS ?= 100 
 
 CFLAGS := -m32 -ffreestanding -nostdlib -fno-pie -fno-stack-protector \
-          -fno-asynchronous-unwind-tables -Wall -Wextra -g -I$(KERNEL_DIR)
+          -fno-asynchronous-unwind-tables -Wall -Wextra -g -I$(INCLUDE_DIR)
 
 ifdef CRASH_DEMO
 # 'make test-panic' builds a kernel that faults on purpose after boot,
