@@ -2,6 +2,7 @@
 
 #include "kernel/drivers/serial.h"
 #include "kernel/drivers/vga_text.h"
+#include "kernel/drivers/timer.h"
 
 
 /* IDT gate: present, DPL 0, 32-bit interrupt gate. Interrupt gates
@@ -253,7 +254,7 @@ void irq_handler(interrupt_frame  * frame){
   /* handle my hardware interrupts*/
   switch(frame->vector-32){
     case 0:
-      serial_write("timer interrupt");
+      timer_handler();
       break;
     case 1:
       serial_write("keyboard interrupt");

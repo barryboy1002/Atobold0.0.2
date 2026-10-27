@@ -1,14 +1,16 @@
 #include "kernel/drivers/vga_text.h"
 #include "kernel/drivers/serial.h"
 #include "kernel/interrupts.h"
+#include "kernel/drivers/timer.h"
 
 
-static vga_text terminal;
+vga_text terminal;
 void terminal_setup()
 {
   vga_text_init(&terminal);
   serial_init();
   interrupts_init();
+  timer_init(100);
 
   /* one boot banner on both outputs: the screen and COM1 */
   vga_text_writeline(&terminal, "Atobold 0.0.2");
