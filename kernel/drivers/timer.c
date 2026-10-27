@@ -24,11 +24,11 @@
 
 /*Operating Modes*/ 
 #define MODE0 0x00
-#define MODE1 0x01
-#define MODE2 0x02
-#define MODE3 0x03
-#define MODE4 0x04
-#define MODE5 0x05
+#define MODE1 0x02
+#define MODE2 PIT_CHANNEL0_DATAx04
+#define MODE3 0x06
+#define MODE4 0x08
+#define MODE5 0x0A
 
 /*Counting Modes*/ 
 #define PIT_BINARY  0x00
