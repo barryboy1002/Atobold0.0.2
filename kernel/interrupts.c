@@ -116,6 +116,10 @@ void pic_send_eoi(uint8_t irq){
   outb(PIC1_COMM,PIC_EOI);
 }
 
+void cli(void){
+  __asm__ volatile("cli");
+}
+
 static char *append_str(char *p, const char *s)
 {
   while (*s != '\0') {
