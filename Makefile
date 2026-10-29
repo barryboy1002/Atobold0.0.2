@@ -16,13 +16,14 @@ BUILD_DIR  := build
 INCLUDE_DIR := include
 KERNEL_DIR := kernel
 DRIVERS := $(KERNEL_DIR)/drivers
+UTILS := $(KERNEL_DIR)/utils
 BOOT_SRC   := bootloader/bootloader.asm
 ENTRY_SRC  := $(KERNEL_DIR)/basic_kernel.asm
 LDSCRIPT   := $(KERNEL_DIR)/linker.ld
 
 C_SRCS := $(KERNEL_DIR)/kernel_main.c $(DRIVERS)/vga_text.c \
           $(DRIVERS)/serial.c $(KERNEL_DIR)/interrupts.c \
-					$(DRIVERS)/timer.c
+					$(DRIVERS)/timer.c $(UTILS)/sleep.c
 C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 # The bootloader reads this many 512-byte sectors of kernel at 0x9000.

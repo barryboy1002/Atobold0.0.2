@@ -48,6 +48,8 @@ extern vga_text terminal;
 void timer_init(uint32_t frequency){
   uint16_t divisor = BASE_FREQUENCY / frequency;
 
+  //cli();
+
   /*tell PIT how we send the divisor value and the mode */
   outb(PIT_COMMAND, LOHIBYTE_MODE | MODE3 | PIT_CHANNEL0 | PIT_BINARY);
   io_wait();

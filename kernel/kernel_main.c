@@ -2,6 +2,7 @@
 #include "kernel/drivers/serial.h"
 #include "kernel/interrupts.h"
 #include "kernel/drivers/timer.h"
+#include "kernel/utils/sleep.h"
 
 
 vga_text terminal;
@@ -16,6 +17,8 @@ void terminal_setup()
   vga_text_writeline(&terminal, "Atobold 0.0.2");
   //vga_text_put_entry_at(&terminal, 'F',12,14, 25,04);
   serial_write("Atobold 0.0.2\n");
+
+  sleep(10);
 
 #ifdef CRASH_DEMO
   /* deliberate fault so the exception reporter can be seen and tested;
