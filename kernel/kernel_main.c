@@ -18,7 +18,6 @@ void terminal_setup()
   //vga_text_put_entry_at(&terminal, 'F',12,14, 25,04);
   serial_write("Atobold 0.0.2\n");
 
-  sleep(10);
 
 #ifdef CRASH_DEMO
   /* deliberate fault so the exception reporter can be seen and tested;

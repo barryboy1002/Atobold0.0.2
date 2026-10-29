@@ -25,7 +25,7 @@
 /*Operating Modes*/ 
 #define MODE0 0x00
 #define MODE1 0x02
-#define MODE2 PIT_CHANNEL0_DATAx04
+#define MODE2 0x04
 #define MODE3 0x06
 #define MODE4 0x08
 #define MODE5 0x0A
@@ -51,7 +51,7 @@ void timer_init(uint32_t frequency){
   //cli();
 
   /*tell PIT how we send the divisor value and the mode */
-  outb(PIT_COMMAND, LOHIBYTE_MODE | MODE3 | PIT_CHANNEL0 | PIT_BINARY);
+  outb(PIT_COMMAND, LOHIBYTE_MODE | MODE2 | PIT_CHANNEL0 | PIT_BINARY);
   io_wait();
   
   /*write low and high bytes respectively*/
