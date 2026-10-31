@@ -9,6 +9,7 @@
 
 /*PIT input Clock*/
 #define BASE_FREQUENCY  1193182
+#define LOWEST_FREQUENCY 18
 
 /*Channel selection*/
 #define PIT_CHANNEL0  0x00
@@ -41,17 +42,25 @@
 #include "kernel/drivers/vga_text.h"
 
 volatile uint32_t ticks = 0 ;
-
+uint32_t second = 100;
 extern vga_text terminal;
 
 
 void timer_init(uint32_t frequency){
+
+  if (frequency <= LOWEST_FREQUENCY){
+    vga_text_writeline(&terminal, "try another frequency this will not work");
+    return;
+  }
+
+  second  = frequency;
   uint16_t divisor = BASE_FREQUENCY / frequency;
+
 
   //cli();
 
   /*tell PIT how we send the divisor value and the mode */
-  outb(PIT_COMMAND, LOHIBYTE_MODE | MODE2 | PIT_CHANNEL0 | PIT_BINARY);
+  outb(PIT_COMMAND, LOHIBYTE_MODE | MODE3 | PIT_CHANNEL0 | PIT_BINARY);
   io_wait();
   
   /*write low and high bytes respectively*/
@@ -64,7 +73,7 @@ void timer_init(uint32_t frequency){
 
 void timer_handler(void){
   ticks++;
-  if((ticks % 100) == 0){
+  if((ticks % second) == 0){
     vga_text_writeline(&terminal, "1 second");
   }
 }
