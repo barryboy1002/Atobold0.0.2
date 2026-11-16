@@ -3,6 +3,7 @@
 #include "kernel/drivers/serial.h"
 #include "kernel/drivers/vga_text.h"
 #include "kernel/drivers/timer.h"
+#include "kernel/drivers/keyboard.h"
 
 
 /* IDT gate: present, DPL 0, 32-bit interrupt gate. Interrupt gates
@@ -261,7 +262,7 @@ void irq_handler(interrupt_frame  * frame){
       timer_handler();
       break;
     case 1:
-      serial_write("keyboard interrupt");
+      keyboard_handler();
       break;
     default:
       serial_write( "I probably am not handling that yet");

@@ -8,6 +8,7 @@ extern uint32_t second;
 void timer_init(uint32_t frequency);
 void timer_handler(void);
 uint32_t timer_get_ticks();
+uint32_t uptime_get_seconds();
 
 #endif
 

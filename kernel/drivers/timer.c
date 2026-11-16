@@ -48,7 +48,7 @@ extern vga_text terminal;
 
 void timer_init(uint32_t frequency){
 
-  if (frequency <= LOWEST_FREQUENCY){
+  if (frequency == 0 || frequency > BASE_FREQUENCY){
     vga_text_writeline(&terminal, "try another frequency this will not work");
     return;
   }
@@ -74,13 +74,17 @@ void timer_init(uint32_t frequency){
 void timer_handler(void){
   ticks++;
   if((ticks % second) == 0){
-    vga_text_writeline(&terminal, "1 second");
+    //vga_text_writeline(&terminal, "1 second");
   }
 }
 
 
 uint32_t timer_get_ticks(){
   return ticks;
+}
+
+uint32_t uptime_get_seconds(){
+  return timer_get_ticks()/second;
 }
 
 

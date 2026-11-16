@@ -23,7 +23,7 @@ LDSCRIPT   := $(KERNEL_DIR)/linker.ld
 
 C_SRCS := $(KERNEL_DIR)/kernel_main.c $(DRIVERS)/vga_text.c \
           $(DRIVERS)/serial.c $(KERNEL_DIR)/interrupts.c \
-					$(DRIVERS)/timer.c $(UTILS)/sleep.c
+					$(DRIVERS)/timer.c $(UTILS)/sleep.c $(DRIVERS)/keyboard.c
 C_OBJS := $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 # The bootloader reads this many 512-byte sectors of kernel at 0x9000.
