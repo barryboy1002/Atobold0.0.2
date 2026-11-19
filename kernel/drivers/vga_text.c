@@ -63,7 +63,22 @@ void vga_text_putchar(vga_text * terminal, char c)
     terminal->row++;
   } else if (c == '\r') {
     terminal->column = 0;
-  } else {
+  }
+  else if (c == '\t') {
+    terminal->column = (terminal->column + 8) & ~(8 - 1);
+  }
+  else if (c == '\b') {
+    if (terminal->column > 0) {
+      terminal->column--;
+    } else if (terminal->row > 0) {
+      terminal->row--;
+      terminal->column = terminal->width - 1;
+    }
+    const size_t index = terminal->row * terminal->width + terminal->column;
+    uint16_t entry = ((uint16_t)terminal->color << 8) | ' ';
+    terminal->buffer[index] = entry;
+  } 
+  else {
     uint8_t color = terminal->color;
     const size_t index = terminal->row * terminal->width + terminal->column;
     uint16_t entry = ((uint16_t)color << 8) | (uint8_t) c;
